@@ -20,6 +20,7 @@ use Alura\Mvc\Repository\VideoRepository;
 require_once __DIR__ . '/../vendor/autoload.php';
 
 session_start();
+session_regenerate_id(); //altera o valor de cookie de sessão
 
 $dbPath = __DIR__ . '/../banco.sqlite';
 $pdo = new PDO("sqlite:$dbPath");
