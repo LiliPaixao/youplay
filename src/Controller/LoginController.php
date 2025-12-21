@@ -1,11 +1,14 @@
 <?php
-
 declare(strict_types=1);
 
 namespace Alura\Mvc\Controller;
 
+use Alura\Mvc\Helper\FlashMessageTrait;
+
 class LoginController implements Controller
 {
+    use FlashMessageTrait;
+
     private \PDO $pdo;
     public function __construct()
     {
@@ -40,8 +43,9 @@ class LoginController implements Controller
             header('Location: /');
             exit();
         } else {
-            header('Location: /login?sucesso=0');
-            exit();
+            $this->addErrorMessage('Usuário ou senha inválidos');
+            header('Location: /login');
+            
         }
 
     }
