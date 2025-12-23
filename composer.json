@@ -11,6 +11,7 @@
         "psr/http-server-handler": "^1.0",
         "psr/container": "^2.0",
         "php-di/php-di": "^7.1",
-        "ext-fileinfo": "*"
+        "ext-fileinfo": "*",
+        "league/plates": "^3.6"
     }
 }

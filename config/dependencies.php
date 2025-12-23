@@ -1,5 +1,7 @@
 <?php
 
+use League\Plates\Engine;
+
 $builder = new \DI\ContainerBuilder();
 $builder->addDefinitions([
     //Como factory
@@ -10,7 +12,12 @@ $builder->addDefinitions([
 
     // como função
     // PDO::class => \DI\create(PDO::class)
-    //     ->constructor('sqlite:' . __DIR__ . '/../banco.sqlite'),    
+    //     ->constructor('sqlite:' . __DIR__ . '/../banco.sqlite'), 
+    
+    League\Plates\Engine::class => function () {
+        $templatePath = __DIR__ . '/../views';
+        return new Engine($templatePath, 'php');
+    },
 ]);
 
 
