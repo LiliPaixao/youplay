@@ -6,8 +6,11 @@ namespace Alura\Mvc\Controller;
 
 use Alura\Mvc\Repository\VideoRepository;
 use Alura\Mvc\Entity\Video;
-use PDO;
+use Nyholm\Psr7\Response;
 use Alura\Mvc\Helper\FlashMessageTrait;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\UploadedFileInterface;
 
 class NewVideoController implements Controller
 {
@@ -16,45 +19,63 @@ class NewVideoController implements Controller
     public function __construct(private VideoRepository $videoRepository)
     {
     }
-    public function processaRequisicao(): void
+    public function processaRequisicao(ServerRequestInterface $request): ResponseInterface
     {
-        $url = filter_input( INPUT_POST,'url', FILTER_VALIDATE_URL);
+        //Take data with post
+        $postData = $request->getParsedBody();
+
+        $url = filter_var($postData['url'] ?? '', FILTER_VALIDATE_URL); 
         if ($url === false) {
             $this->addErrorMessage('URL inválida');
-            header('Location: /novo-video');
-            return;
+            return new Response(302,
+            [
+                'Location' => '/novo-video'
+            ]);
         }
 
-        $titulo = filter_input(INPUT_POST,'titulo');
-        if ($titulo === false) {
+        $titulo = filter_var($postData['titulo'] ?? '', FILTER_DEFAULT);
+        if (empty($titulo)) {
             $this->addErrorMessage('Título não informado');
-            header('Location: /novo-video');
-            return;
+            return new Response(302,
+            [
+                'Location' => '/novo-video'
+            ]   );
         }
 
         // Incluir slug
         $video = new Video($url, $titulo);
-        $_FILES['image'];
-        if ($_FILES['image']['error'] === UPLOAD_ERR_OK){
-            $safeFileName = uniqid('upload_') . '_'. pathinfo($_FILES['image']['name'], PATHINFO_BASENAME);
+
+        $uploadedFiles = $request->getUploadedFiles();
+
+        /**@var ?UploadedFileInterface $uploadedFile */
+        $uploadedFile = $uploadedFiles['image'] ?? null;
+
+        if ($uploadedFile && $uploadedFile->getError() === UPLOAD_ERR_OK) {
             $finfo = new \finfo(FILEINFO_MIME_TYPE);
-            $mimeType = $finfo->file($_FILES['image']['tmp_name']);
+            $tmpPath = $uploadedFile->getStream()->getMetadata('uri');
+            $mimeType = $finfo->file($tmpPath);
             
+
             if (str_starts_with($mimeType, 'image/')) {
-                move_uploaded_file(
-                    $_FILES['image']['tmp_name'],
-                    __DIR__ . '/../../public/img/uploads/' .  $safeFileName
-                );
+                $safeFileName = uniqid('upload_') . '_'. pathinfo($uploadedFile->getClientFilename(), PATHINFO_BASENAME);
+                
+                // Move uploaded file to uploads directory
+                $uploadedFile->moveTo(__DIR__ . '/../../public/img/uploads/' .  $safeFileName);
                 $video->setFilePath( $safeFileName);
             }
         }
 
-        $sucess = $this->videoRepository->add(new Video($url, $titulo));
+
+        $sucess = $this->videoRepository->add($video);
         if ($sucess === false) {
             $this->addErrorMessage('Erro ao cadastrar vídeo');
-            header('Location: /novo-video');
+            return new Response(302, [
+                'Location' => '/novo-video'
+            ]);
         } else {
-            header('Location: /?sucesso=1');
+            return new Response(302, [
+                'Location' => '/?sucesso=1'
+            ]);
         }
     }
 }
