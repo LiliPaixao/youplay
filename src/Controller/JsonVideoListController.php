@@ -10,15 +10,16 @@ use Alura\Mvc\Controller\Controller;
 use Psr\Http\Message\ResponseInterface;
 use Alura\Mvc\Repository\VideoRepository;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\RequestHandlerInterface;
 
-class JsonVideoListController implements Controller
+class JsonVideoListController implements RequestHandlerInterface
 {
     public function __construct(private VideoRepository $videoRepository)
     {
         //
     }
 
-    public function processaRequisicao(ServerRequestInterface $request): ResponseInterface  
+    public function handle(ServerRequestInterface $request): ResponseInterface  
     {
         $videoList = array_map(function(Video $video): array {
             return [

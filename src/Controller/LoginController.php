@@ -7,8 +7,9 @@ use Nyholm\Psr7\Response;
 use Alura\Mvc\Helper\FlashMessageTrait;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\RequestHandlerInterface;
 
-class LoginController implements Controller
+class LoginController implements RequestHandlerInterface
 {
     use FlashMessageTrait;
 
@@ -19,7 +20,7 @@ class LoginController implements Controller
         $this->pdo = new \PDO("sqlite:$dbPath");
     }
 
-    public function processaRequisicao(ServerRequestInterface $request): ResponseInterface
+    public function handle(ServerRequestInterface $request): ResponseInterface
     {
         $postData = $request->getParsedBody();
 

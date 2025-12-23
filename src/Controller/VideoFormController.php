@@ -9,8 +9,9 @@ use Alura\Mvc\Helper\HtmlRendererTrait;
 use Psr\Http\Message\ResponseInterface;
 use Alura\Mvc\Repository\VideoRepository;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\RequestHandlerInterface;
 
-class VideoFormController implements Controller
+class VideoFormController implements RequestHandlerInterface
 {
     use HtmlRendererTrait;
     public function __construct(private VideoRepository $repository)
@@ -18,7 +19,7 @@ class VideoFormController implements Controller
     }
 
 
-    public function processaRequisicao(ServerRequestInterface $request): ResponseInterface
+    public function handle(ServerRequestInterface $request): ResponseInterface
     {
         $queryParams = $request->getQueryParams();
 
