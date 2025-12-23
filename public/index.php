@@ -2,19 +2,8 @@
 
 declare(strict_types=1);
 
-use Alura\Mvc\Controller\{
-    Controller,
-    DeleteVideoController,
-    EditVideoController,
-    Error404Controller,
-    LoginController,
-    LoginFormController,
-    LogoutController,
-    NewVideoController,
-    VideoFormController,
-    VideoListController
-};
-
+use Alura\Mvc\Controller;
+use Alura\Mvc\Controller\Error404Controller;
 use Alura\Mvc\Repository\VideoRepository;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7Server\ServerRequestCreator;
@@ -41,6 +30,10 @@ $pdo = new PDO("sqlite:$dbPath");
 $videoRepository = new VideoRepository($pdo);
 
 $routes = require_once __DIR__ . '/../config/routes.php';
+/**
+ * @var \Psr\Container\ContainerInterface $diContainer
+ */
+$diContainer = require_once __DIR__ . '/../config/dependencies.php';
 
 // 2. Pegar Path e Método do objeto $request (PSR-7)
 $pathInfo = $request->getUri()->getPath();
@@ -56,18 +49,20 @@ if (!array_key_exists('logado', $_SESSION) && !$isLoginRoute) {
 
 $key = "$httpMethod|$pathInfo";
 if (array_key_exists($key, $routes)) {
-        $controllerClass = $routes[$key];
-        /** @var Controller $controller */  
-        $controller = new $controllerClass($videoRepository);
+        $controllerClass = $routes["$httpMethod|$pathInfo"];
+         
+        $controller = $diContainer->get($controllerClass);
 } else {
-        $controllerClass = \Alura\Mvc\Controller\Error404Controller::class;
-        /** @var Controller $controller */              
-         $controller = new $controllerClass();
+                 
+         $controller = new Error404Controller();
 }
 
+
+
+
 // 4. EXECUTAR O CONTROLLER E RECEBER A RESPOSTA
-/** @var \Psr\Http\Message\ResponseInterface $response */
-$response = $controller->processaRequisicao($request);
+/** @var \Psr\Http\Server\RequestHandlerInterface $controller */
+$response = $controller->handle($request);
 
 // 5. EMITIR A RESPOSTA (Enviar para o navegador)
 // Enviar o código de status (200, 302, 404, etc.)
